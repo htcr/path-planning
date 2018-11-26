@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # points: list of tuples
 # [(x, y), (x, y) ...]
@@ -81,6 +82,26 @@ def convex_hull(points):
         ans.append(p.val)
         p = p.next
     return ans
+
+points1 = [(0, 0), (0, 1), (1, 0)]
+points2 = [(0, 0), (0, 1), (1, 1), (1, 0), (0.5, 0.5), (0.5, 2)]
+points3 = [(0, 0), (3, 0), (1, 1), (-1, 3), (0.5, 3), (1.5, 2.8), (4, 2.3), (1.2, 5)]
+points4_np = np.random.rand(300, 2)*500
+points4 = [(p[0], p[1]) for p in points4_np]
+points5_np = np.random.rand(30000, 2)*5000
+points5 = [(p[0], p[1]) for p in points5_np]
+
+points_list = [points1, points2, points3, points4, points5]
+
+for points in points_list:
+    n_points = len(points)
+    ch = convex_hull(points)
+    ch.append(ch[0]) # close up
+    ax = plt.subplot()
+    ax.plot([p[0] for p in ch], [p[1] for p in ch])
+    ax.scatter([p[0] for p in points], [p[1] for p in points], s=1 if n_points > 10000 else 4, c='k')
+    plt.savefig('1_%dpts.png' % n_points)
+    plt.clf()
 
 
 '''
