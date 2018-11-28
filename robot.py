@@ -139,8 +139,23 @@ plt.show()
 
 poly0 = Poly([(0, 0), (1, 0), (1, 2), (0, 2)])
 poly1 = Poly([(2, 0), (3, 0), (3, 2), (2, 2)])
-
 robot = Poly([(-1, -1), (-0.5, -1), (-1, -0.2)])
 goal = (3, 3)
 obs = [poly0, poly1]
 plot_env2((robot, goal, obs), 0)
+
+poly2 = Poly([(0, 0), (2, 0), (2, 2), (0, 2)])
+poly3 = Poly([(1, 1), (3, 1), (3, 3), (1, 3)])
+robot2 = Poly([(-1, -1), (-0.9, -1.1), (-0.8, -1), (-0.9, -0.9)])
+goal2 = (3, 4)
+obs2 = [poly2, poly3]
+plot_env2((robot2, goal2, obs2), 1)
+
+poly4 = Poly([(0, 0), (3, 0), (1, 2), (0, 2)])
+poly5 = Poly([(6, -1), (11, -1), (11, 0.5), (6, 0.5)])
+poly6 = Poly([(10, 0.5), (11, 0.5), (11, 3), (10, 3)])
+poly7 = Poly([(3, 1), (8, 1), (8, 3), (3, 3)])
+robot3 = Poly([(2, -2), (3, -2), (2, -1)])
+goal3 = (9, 5)
+obs3 = [poly4, poly5, poly6, poly7]
+plot_env2((robot3, goal3, obs3), 2)
