@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import heapq
 
 class Poly(object):
     def __init__(self, points):
@@ -167,42 +168,90 @@ def build_visible_graph(start, goal, obstacles):
     
     return graph
 
-def plot_visible_graph(graph):
-    ax = plt.subplot()
+def plot_visible_graph(ax, graph):
     for node in graph:
         p = node.point
         x, y = p
         for adj_node, dist in node.adj:
             x1, y1 = adj_node.point
-            ax.plot([x, x1], [y, y1], c='k')
-    plt.show()
+            ax.plot([x, x1], [y, y1], c=(0.6, 0.6, 0.6))
 
+def find_path(graph):
+    node_num = len(graph)
+    goal_id = node_num - 1
 
-#poly0 = Poly([(0, 0), (2, 0), (1, 1), (2, 2), (1, 3), (0, 2)])
-'''
-poly0 = Poly([(0, 0), (2, 0), (2, 2), (0, 2)])
-poly1 = Poly([(1, 1), (3, 1), (3, 3), (1, 3)])
-start = (-1, -1)
-goal = (1, 4)
+    dists = dict() # node_id: (dist, next_id)
+    heap = [(0, goal_id, None)]
+    
+    while len(dists) < node_num and heap:
+        cur_dist, cur_id, cur_next = heapq.heappop(heap)
+        if cur_id in dists:
+            continue
+        dists[cur_id] = (cur_dist, cur_next)
+        cur_node = graph[cur_id]
+        for adj_node, adj_dist in cur_node.adj:
+            adj_id = adj_node.idx
+            if adj_id in dists:
+                continue
+            new_heap_item = (cur_dist+adj_dist, adj_id, cur_id)
+            heapq.heappush(heap, new_heap_item)
+    
+    start_id = 0
+    path = list()
+    p = start_id
+    while p != None:
+        waypoint = graph[p].point
+        path.append(waypoint)
+        p = dists[p][1]
+    
+    return path
 
-obs = [poly0, poly1]
-graph = build_visible_graph(start, goal, obs)
-plot_visible_graph(graph)
-'''
+def plot_path(ax, path):
+    path_np = np.array(path)
+    ax.plot(path_np[:, 0], path_np[:, 1], linewidth=4.0, c=(0.0, 1.0, 0.0))
+
+def plot_obstacle(ax, poly):
+    points = list(poly.points)
+    points.append(points[0])
+    path_np = np.array(points)
+    ax.plot(path_np[:, 0], path_np[:, 1], linewidth=2.0, c=(0.0, 0.0, 0.0))
+
+def plot_env(env, idx):
+    start, goal, obstacles = env
+    graph = build_visible_graph(start, goal, obstacles)
+    path = find_path(graph)
+
+    ax = plt.subplot()
+    ax.axis('equal')
+
+    plot_visible_graph(ax, graph)
+    for poly in obstacles:
+        plot_obstacle(ax, poly)
+    plot_path(ax, path)
+    
+    plt.savefig('env_%d.png' % idx)
+    plt.clf()
+            
+
 
 poly0 = Poly([(0, 0), (1, 0), (1, 2), (0, 2)])
 poly1 = Poly([(2, 0), (3, 0), (3, 2), (2, 2)])
-start = (1.6, -1)
-goal = (1.2, 3)
-
+start = (-1, -1)
+goal = (3, 3)
 obs = [poly0, poly1]
-graph = build_visible_graph(start, goal, obs)
-plot_visible_graph(graph)
+plot_env((start, goal, obs), 0)
 
+poly2 = Poly([(0, 0), (2, 0), (2, 2), (0, 2)])
+poly3 = Poly([(1, 1), (3, 1), (3, 3), (1, 3)])
+start2 = (-1, -1)
+goal2 = (3, 4)
+obs2 = [poly2, poly3]
+plot_env((start2, goal2, obs2), 1)
 
-'''
-seg0 = ((0, 0), (1, 0))
-seg1 = ((1, -1), (1, 1))
-
-print(line_segments_intersect(seg0, seg1))
-'''
+poly4 = Poly([(0, 0), (0, 4), (-3, 0)])
+poly5 = Poly([(1, 0), (3, 0), (3, 4), (1, 4)])
+poly6 = Poly([(-3, -1), (-3, -2), (3, -2), (3, -1)])
+start3 = (0.5, 2)
+goal3 = (-0.5, -2.5)
+obs3 = [poly4, poly5, poly6]
+plot_env((start3, goal3, obs3), 2)
