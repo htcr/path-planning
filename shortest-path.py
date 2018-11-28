@@ -6,12 +6,18 @@ class Poly(object):
         # edge: tuple of points
         edges = list()
         num_points = len(points)
+        # the previous and next edge of that vertex
+        point_edges = list()
+
         assert num_points >= 3
         for i in range(0, num_points-1):
             edges.append((points[i], points[i+1]))
+            point_edges.append( (points[i-1], points[i], points[i+1]) )
         edges.append((points[-1], points[0]))
+        point_edges.append( (points[num_points-2], points[num_points-1], points[0]) )
         self.edges = edges
         self.points = points
+        self.point_edges = point_edges
 
 def angle(x1, y1, x2, y2):
     # result in (-pi, pi)
@@ -81,15 +87,86 @@ def line_segments_intersect(seg1, seg2):
   
     return False
 
+class Node(object):
+    def __init__(self, point, idx, poly_idx, point_edges=None):
+        self.point = point
+        self.idx = idx
+        self.poly_idx = poly_idx
+        self.adj = list()
+        self.point_edges = point_edges
+
+def line_segment_in_poly(seg, poly):
+    # check if the segment has at least
+    # one point inside poly
+    p1, p2 = seg
+    return point_inside_poly(p1, poly) or point_inside_poly(p2, poly)
+
+def line_segment_len(seg):
+    x1, y1 = seg[0]
+    x2, y2 = seg[1]
+    return ((x2-x1)**2 + (y2-y1)**2)**0.5
+
+def build_visible_graph(start, goal, obstacles):
+    # start, end: point
+    # obstacles: list of polys
+    graph = list()
+    graph.append(Node(start, len(graph), -1))
+    
+    for idx, poly in enumerate(obstacles):
+        for pid, p in enumerate(poly.points):
+            graph.append(Node(p, len(graph), idx, point_edges=poly.point_edges[pid]))
+
+    graph.append(Node(goal, len(graph), -2))
+
+    # add edges
+
+    for i in range(len(graph)-1):
+        for j in range(i+1, len(graph)):
+            node_i, node_j = graph[i], graph[j]
+            
+            if node_i.point_edges is not None:
+                p0, pi, p1 = node_i.point_edges
+                pj = node_j.point
+
+                o1 = orientation(p0, pi, pj)
+                o2 = orientation(pi, p1, pj)
+
+                if o1 == o2 == 2:
+                    continue
+
+            path = (pi, pj)
+            path_exist = True
+            for poly in obstacles:
+                for edge in poly.edges:
+                    if line_segments_intersect(path, edge):
+                        path_exist = False
+                        break
+                if not path_exist:
+                    break
+
+            if path_exist:
+                dist = line_segment_len(path)
+                node_i.adj.append((node_j, dist))
+                node_j.adj.append((node_i, dist))
+    
+    return graph
+
+
+
+    
+    
+    
 
 
 '''
 points = [(0, 0), (1, 0.5), (2, 0), (0, 2)]
 poly = Poly(points)
-p = (1, 0.4)
+p = (0, 0)
+'''
 
 print(point_inside_poly(p, poly))
 
+'''
 l1 = ((0, 0), (1, 1))
 l2 = ((1, 1), (1, 0))
 print(line_segments_intersect(l1, l2))
