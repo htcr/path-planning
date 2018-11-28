@@ -210,11 +210,11 @@ def plot_path(ax, path):
     path_np = np.array(path)
     ax.plot(path_np[:, 0], path_np[:, 1], linewidth=4.0, c=(0.0, 1.0, 0.0))
 
-def plot_obstacle(ax, poly):
+def plot_obstacle(ax, poly, c=(0.0, 0.0, 0.0)):
     points = list(poly.points)
     points.append(points[0])
     path_np = np.array(points)
-    ax.plot(path_np[:, 0], path_np[:, 1], linewidth=2.0, c=(0.0, 0.0, 0.0))
+    ax.plot(path_np[:, 0], path_np[:, 1], linewidth=2.0, c=c)
 
 def plot_env(env, idx):
     start, goal, obstacles = env
