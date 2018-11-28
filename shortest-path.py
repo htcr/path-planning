@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Poly(object):
     def __init__(self, points):
@@ -63,10 +64,11 @@ def orientation(p1, p2, p3):
     return 1 if val > 0 else 2
 
 def on_segment(p, q, r):
+    eps = 0.001
     x, y = q
     x1, y1 = p
     x2, y2 = r
-    return min(x1, x2) <= x <= max(x1, x2) and min(y1, y2) <= y <= max(y1, y2)
+    return min(x1, x2)+eps < x < max(x1, x2)-eps and min(y1, y2)+eps < y < max(y1, y2)-eps
 
 def line_segments_intersect(seg1, seg2):
     p1, q1 = seg1
@@ -77,14 +79,18 @@ def line_segments_intersect(seg1, seg2):
     o3 = orientation(p2, q2, p1) 
     o4 = orientation(p2, q2, q1)
 
-    if o1 != o2 and o3 != o4:
+    zero_cnt = sum((o1==0, o2==0, o3==0, o4==0))
+
+    if o1 != o2 and o3 != o4 and zero_cnt <= 1:
         return True
-    
+
+    '''
     if o1 == 0 and on_segment(p1, p2, q1): return True 
     if o2 == 0 and on_segment(p1, q2, q1): return True 
     if o3 == 0 and on_segment(p2, p1, q2): return True 
     if o4 == 0 and on_segment(p2, q1, q2): return True 
-  
+    '''
+
     return False
 
 class Node(object):
@@ -133,8 +139,18 @@ def build_visible_graph(start, goal, obstacles):
 
                 if o1 == o2 == 2:
                     continue
+            
+            if node_j.point_edges is not None:
+                p0, pj, p1 = node_j.point_edges
+                pi = node_i.point
 
-            path = (pi, pj)
+                o1 = orientation(p0, pj, pi)
+                o2 = orientation(pj, p1, pi)
+
+                if o1 == o2 == 2:
+                    continue
+
+            path = (node_i.point, node_j.point)
             path_exist = True
             for poly in obstacles:
                 for edge in poly.edges:
@@ -151,23 +167,42 @@ def build_visible_graph(start, goal, obstacles):
     
     return graph
 
+def plot_visible_graph(graph):
+    ax = plt.subplot()
+    for node in graph:
+        p = node.point
+        x, y = p
+        for adj_node, dist in node.adj:
+            x1, y1 = adj_node.point
+            ax.plot([x, x1], [y, y1], c='k')
+    plt.show()
 
 
-    
-    
-    
+#poly0 = Poly([(0, 0), (2, 0), (1, 1), (2, 2), (1, 3), (0, 2)])
+'''
+poly0 = Poly([(0, 0), (2, 0), (2, 2), (0, 2)])
+poly1 = Poly([(1, 1), (3, 1), (3, 3), (1, 3)])
+start = (-1, -1)
+goal = (1, 4)
+
+obs = [poly0, poly1]
+graph = build_visible_graph(start, goal, obs)
+plot_visible_graph(graph)
+'''
+
+poly0 = Poly([(0, 0), (1, 0), (1, 2), (0, 2)])
+poly1 = Poly([(2, 0), (3, 0), (3, 2), (2, 2)])
+start = (1.6, -1)
+goal = (1.2, 3)
+
+obs = [poly0, poly1]
+graph = build_visible_graph(start, goal, obs)
+plot_visible_graph(graph)
 
 
 '''
-points = [(0, 0), (1, 0.5), (2, 0), (0, 2)]
-poly = Poly(points)
-p = (0, 0)
-'''
+seg0 = ((0, 0), (1, 0))
+seg1 = ((1, -1), (1, 1))
 
-print(point_inside_poly(p, poly))
-
-'''
-l1 = ((0, 0), (1, 1))
-l2 = ((1, 1), (1, 0))
-print(line_segments_intersect(l1, l2))
+print(line_segments_intersect(seg0, seg1))
 '''
